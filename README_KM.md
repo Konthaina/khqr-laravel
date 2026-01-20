@@ -1,40 +1,40 @@
 # konthaina/khqr-php
 
-KHQR / EMVCo merchant-presented QR payload generator for PHP (Bakong / Cambodia).
-Includes CRC16 (CRC-16/CCITT-FALSE), MD5, and a verification helper.
+បណ្ណាល័យ PHP សម្រាប់បង្កើត **KHQR / EMVCo (Merchant-Presented QR)** សម្រាប់ Bakong / Cambodia។  
+មាន **CRC16 (CRC-16/CCITT-FALSE)**, `md5`, និង function សម្រាប់ verify QR (CRC) ផងដែរ។
 
 > Namespace: `Konthaina\Khqr`  
-> Main class: `Konthaina\Khqr\KHQRGenerator`
+> Class មេ: `Konthaina\Khqr\KHQRGenerator`
 
 ---
 
-## Features
+## លក្ខណៈពិសេស (Features)
 
-- Generate **KHQR** payload string (EMV Tag-Length-Value format)
-- Supports **Individual** and **Merchant** account structures
-- Supports **Static QR** and **Dynamic QR**
-- Optional fields: amount, bill number, mobile number, store label, terminal label, purpose, alternate language, etc.
-- CRC16 calculation + verification
-- Returns `md5` hash of the full QR payload string
+- បង្កើត string **KHQR** (EMV Tag-Length-Value format)
+- គាំទ្រ **Individual** និង **Merchant** account structures
+- គាំទ្រ **Static QR** និង **Dynamic QR**
+- Optional fields៖ amount, bill number, mobile number, store label, terminal label, purpose, alternate language…
+- គណនា CRC16 និង verify CRC
+- ត្រឡប់ `md5` hash របស់ QR payload string ពេញលេញ
 
 ---
 
-## Requirements
+## តម្រូវការ (Requirements)
 
 - PHP >= 8.0
 - Composer
 
 ---
 
-## Installation
+## ដំឡើង (Installation)
 
-### Install via Composer (Packagist)
+### ដំឡើងតាម Composer (Packagist)
 ```bash
 composer require konthaina/khqr-php
 ```
 
-### Install from local path (during development)
-In your main app `composer.json`:
+### ដំឡើងពី local path (សម្រាប់ពេល development)
+នៅក្នុង `composer.json` របស់ project អ្នក៖
 ```json
 {
   "repositories": [
@@ -49,18 +49,18 @@ In your main app `composer.json`:
 }
 ```
 
-Then:
+បន្ទាប់មក៖
 ```bash
 composer update
 ```
 
 ---
 
-## Quick Start
+## ចាប់ផ្តើមលឿន (Quick Start)
 
 ### Generate Dynamic QR (default)
-Dynamic QR usually includes `POI=12` and may include timestamp/reference.  
-If you set an amount, the QR becomes fixed-amount.
+Dynamic QR ជាទម្លាប់ `POI=12` ហើយអាចមាន timestamp/reference។  
+បើអ្នកដាក់ amount វានឹងក្លាយជា fixed-amount QR។
 
 ```php
 <?php
@@ -87,13 +87,13 @@ echo "verify: " . (KHQRGenerator::verify($result['qr']) ? "OK" : "FAIL") . PHP_E
 
 ---
 
-## Static QR vs Dynamic QR
+## Static QR vs Dynamic QR (ពន្យល់សង្ខេប)
 
-### Static QR (recommended: no amount)
-Static QR should be stable (same string every time).  
-In this library, `setStatic(true)` will:
-- Set POI (Tag 01) to **11**
-- Disable timestamp (Tag 99) for better compatibility
+### Static QR (ណែនាំ៖ មិនដាក់ amount)
+Static QR គួរតែ “ដដែល” រាល់ពេល generate (stable)។  
+ក្នុង library នេះ `setStatic(true)` នឹង៖
+- កំណត់ POI (Tag 01) ទៅ **11** (Static)
+- បិទ timestamp (Tag 99) សម្រាប់ compatibility ល្អជាង
 
 ```php
 $result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
@@ -101,17 +101,17 @@ $result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
     ->setBakongAccountId('kon_thaina@cadi')
     ->setMerchantName('Konthaina Co., Ltd.')
     ->setCurrency('USD')
-    // Do NOT setAmount() for static QR
+    // កុំ setAmount() សម្រាប់ static QR
     ->setMerchantCity('Phnom Penh')
     ->generate();
 
 echo $result['qr'] . PHP_EOL;
-echo "md5: {$result['md5']}\n";       // stable
+echo "md5: {$result['md5']}\n"; // stable
 echo "verify: " . (KHQRGenerator::verify($result['qr']) ? "OK" : "FAIL") . PHP_EOL;
 ```
 
-### Dynamic QR (with amount)
-Dynamic QR is the default mode (no need to call `setStatic(false)`).
+### Dynamic QR (មាន amount)
+Dynamic QR គឺ default (មិនចាំបាច់ហៅ `setStatic(false)` ទេ)។
 
 ```php
 $result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
@@ -122,12 +122,12 @@ $result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
     ->generate();
 ```
 
-> Note: If you remove amount but keep Dynamic mode (`POI=12`), some scanner apps may treat it as invalid.  
-> For “no amount” QR, use **Static** (`setStatic(true)`).
+> ចំណាំ៖ បើអ្នកដក amount ចេញ តែស្ថិតក្នុង Dynamic mode (`POI=12`) app ខ្លះអាចស្គេនថា invalid។  
+> សម្រាប់ “no amount” QR សូមប្រើ **Static** (`setStatic(true)`)។
 
 ---
 
-## Merchant Type Examples
+## ឧទាហរណ៍ Merchant Type
 
 ### Individual (Tag 29)
 ```php
@@ -171,12 +171,12 @@ $isValid = KHQRGenerator::verify($qrString);
 
 ---
 
-## Returned structure
+## រចនាសម្ព័ន្ធទិន្នន័យត្រឡប់ (Returned structure)
 
 ```php
 [
   'qr' => '000201...',
-  'timestamp' => '1700000000000', // null for static mode
+  'timestamp' => '1700000000000', // static mode នឹងជា null
   'type' => 'individual|merchant',
   'md5' => '...'
 ]
@@ -186,7 +186,7 @@ $isValid = KHQRGenerator::verify($qrString);
 
 ## Fields / Limits
 
-The generator truncates fields based on common KHQR limits used in the code:
+Library នេះ truncate fields តាម limit ដែលបានកំណត់ក្នុង code៖
 
 - Bakong account id: 32
 - Merchant name: 25
@@ -204,42 +204,42 @@ The generator truncates fields based on common KHQR limits used in the code:
 - City alternate: 15
 - UPI account info: 31
 
-> Note: EMV length uses **byte length**. If you use Khmer/Unicode characters, byte length may differ from character count.
+> ចំណាំ៖ EMV length ប្រើ **byte length**។ បើប្រើអក្សរខ្មែរ/Unicode ប្រវែង byte អាចខុសពីចំនួនតួអក្សរ។
 
 ---
 
 ## Development / Testing
 
-Install dev dependencies:
+ដំឡើង dev dependencies៖
 ```bash
 composer install
 ```
 
-Run tests:
+រត់ test៖
 ```bash
 vendor/bin/phpunit
 ```
 
-Generate autoload:
+generate autoload៖
 ```bash
 composer dump-autoload
 ```
 
 ---
 
-## Release to GitHub / Packagist
+## Release ទៅ GitHub / Packagist
 
-Create a new version tag when you update the library:
+ពេល update library សូម tag version ថ្មី៖
 
 ```bash
 git add .
 git commit -m "Release: v1.0.1"
-git tag v1.0.0
+git tag v1.0.1
 git push origin main
 git push origin v1.0.1
 ```
 
-Packagist will pick up tags like `v1.0.1` as stable versions (if webhook enabled).
+Packagist នឹងទទួលបាន tag ដូចជា `v1.0.1` ជា stable version (បើ webhook enabled)។
 
 ---
 
