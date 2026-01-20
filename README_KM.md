@@ -1,3 +1,8 @@
+[![English](https://img.shields.io/badge/README-English-blue)](README.md)
+[![ខ្មែរ](https://img.shields.io/badge/README-ខ្មែរ-green)](README_KM.md)
+
+---
+
 # konthaina/khqr-php
 
 បណ្ណាល័យ PHP សម្រាប់បង្កើត **KHQR / EMVCo (Merchant-Presented QR)** សម្រាប់ Bakong / Cambodia។  
