@@ -8,6 +8,7 @@ use Konthaina\Khqr\KHQRGenerator;
 $khqr = new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL);
 
 $result = $khqr->setBakongAccountId('kon_thaina@cadi')
+    // ->setStatic(true)
     ->setMerchantName('Konthaina Co., Ltd.')
     ->setAccountInformation('85512233455')
     ->setAcquiringBank('Canadia Bank')

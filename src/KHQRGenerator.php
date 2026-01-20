@@ -18,6 +18,13 @@ class KHQRGenerator
 
     private array $data = [];
     private string $merchantType;
+    private bool $static = false;
+
+    public function setStatic(bool $static = true): self
+    {
+        $this->static = $static;
+        return $this;
+    }
 
     public function __construct(string $merchantType = self::MERCHANT_TYPE_INDIVIDUAL)
     {
@@ -147,7 +154,7 @@ class KHQRGenerator
         $qr .= $this->formatTag('00', '01');
 
         // Point of Initiation Method (Tag 01) - keep as your original ("12")
-        $qr .= $this->formatTag('01', '12');
+        $qr .= $this->formatTag('01', $this->static ? '11' : '12');
 
         // UPI Merchant Account (Tag 15) - Optional
         if (!empty($this->data['upiAccountInformation'])) {
@@ -233,9 +240,12 @@ class KHQRGenerator
             $qr .= $this->formatTag('64', $tag64);
         }
 
-        // Timestamp (Tag 99) - store as integer milliseconds string
-        $timestamp = (string) ((int) round(microtime(true) * 1000));
-        $qr .= $this->formatTag('99', $this->formatTag('00', $timestamp));
+        $timestamp = null;
+        if (!$this->static) {
+            // Timestamp (Tag 99)
+            $timestamp = (string) ((int) round(microtime(true) * 1000));
+            $qr .= $this->formatTag('99', $this->formatTag('00', $timestamp));
+        }
 
         // CRC (Tag 63)
         $crc = $this->calculateCRC($qr . '6304');
