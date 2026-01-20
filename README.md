@@ -1,8 +1,4 @@
-[![English](https://img.shields.io/badge/README-English-blue)](README.md)
-[![ខ្មែរ](https://img.shields.io/badge/README-ខ្មែរ-green)](README_KM.md)
-
----
-
+[English](README.md) | [ខ្មែរ](README_KM.md)
 # konthaina/khqr-php
 
 KHQR / EMVCo merchant-presented QR payload generator for PHP (Bakong / Cambodia).
