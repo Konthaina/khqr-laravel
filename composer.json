@@ -1,0 +1,32 @@
+{
+    "name": "konthaina/khqr-php",
+    "description": "KHQR / EMVCo QR payload generator for PHP (merchant presented) with CRC16 (NBC KHQR spec).",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "khqr",
+        "bakong",
+        "emvco",
+        "qr",
+        "cambodia"
+    ],
+    "require": {
+        "php": ">=8.0",
+        "illuminate/support": "^9.0 || ^10.0 || ^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Konthaina\\Khqr\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Konthaina\\Khqr\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
