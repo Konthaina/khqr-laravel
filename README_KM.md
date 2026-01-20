@@ -57,7 +57,7 @@ composer update
 
 ---
 
-## ចាប់ផ្តើមលឿន (Quick Start)
+## ចាប់ផ្តើម (Quick Start)
 
 ### Generate Dynamic QR (default)
 Dynamic QR ជាទម្លាប់ `POI=12` ហើយអាចមាន timestamp/reference។  
