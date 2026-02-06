@@ -12,7 +12,7 @@
     ],
     "require": {
         "php": ">=8.0",
-        "illuminate/support": "^9.0 || ^10.0 || ^11.0"
+        "illuminate/support": "^9.0 || ^10.0 || ^11.0 || ^12.0"
     },
     "autoload": {
         "psr-4": {
@@ -22,6 +22,16 @@
     "autoload-dev": {
         "psr-4": {
             "Konthaina\\Khqr\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Konthaina\\Khqr\\KhqrServiceProvider"
+            ],
+            "aliases": {
+                "KHQR": "Konthaina\\Khqr\\Facades\\KHQR"
+            }
         }
     },
     "require-dev": {
