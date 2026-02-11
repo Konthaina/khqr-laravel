@@ -7,7 +7,7 @@ use Konthaina\Khqr\BakongApiClient;
 
 // ===== Individual =====
 $khqr = new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL);
-$client = new BakongApiClient('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiODliNzg5NGM4MjFkNDZiMyJ9LCJpYXQiOjE3Njg3OTQyMDcsImV4cCI6MTc3NjU3MDIwN30.SR7Ms9eSF9KDI3S4sBzhFGBzrKFplAY_ugL1bZguoz8');
+$client = new BakongApiClient('YOUR_API_KEY_HERE');
 
 // $result = $khqr->setBakongAccountId('kon_thaina@cadi')
 //     // ->setStatic(true)
