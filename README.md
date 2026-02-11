@@ -1,21 +1,21 @@
 # konthaina/khqr-php
 
 KHQR / EMVCo merchant-presented QR payload generator for PHP (Bakong / Cambodia).
-Includes CRC16 (CRC-16/CCITT-FALSE), MD5, and a verification helper.
+Includes CRC16 (CRC-16/CCITT-FALSE), MD5, and verification helpers.
 
-> Namespace: `Konthaina\Khqr`  
+> Namespace: `Konthaina\Khqr`
 > Main class: `Konthaina\Khqr\KHQRGenerator`
 
 ---
 
 ## Features
 
-- Generate **KHQR** payload string (EMV Tag-Length-Value format)
-- Supports **Individual** and **Merchant** account structures
-- Supports **Static QR** and **Dynamic QR**
+- Generate KHQR payload string (EMV Tag-Length-Value format)
+- Supports Individual and Merchant account structures
+- Supports Static QR and Dynamic QR
 - Optional fields: amount, bill number, mobile number, store label, terminal label, purpose, alternate language, etc.
 - CRC16 calculation + verification
-- Returns `md5` hash of the full QR payload string
+- Returns md5 hash of the full QR payload string
 
 ---
 
@@ -58,10 +58,6 @@ composer update
 
 ## Quick Start
 
-### Generate Dynamic QR (default)
-Dynamic QR usually includes `POI=12` and may include timestamp/reference.  
-If you set an amount, the QR becomes fixed-amount.
-
 ```php
 <?php
 
@@ -85,45 +81,34 @@ echo "timestamp: {$result['timestamp']}\n";
 echo "verify: " . (KHQRGenerator::verify($result['qr']) ? "OK" : "FAIL") . PHP_EOL;
 ```
 
+Returned structure:
+```php
+[
+  'qr' => '000201...',
+  'timestamp' => '1700000000000', // null for static mode
+  'type' => 'individual|merchant',
+  'md5' => '...'
+]
+```
+
 ---
 
 ## Static QR vs Dynamic QR
 
-### Static QR (recommended: no amount)
-Static QR should be stable (same string every time).  
-In this library, `setStatic(true)` will:
-- Set POI (Tag 01) to **11**
-- Disable timestamp (Tag 99) for better compatibility
+- Static QR is stable and uses POI=11. It does not include a timestamp.
+- Dynamic QR is the default mode (POI=12) and may include a timestamp.
+- For a "no amount" QR, use static mode.
 
+Static example:
 ```php
 $result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
     ->setStatic(true)
     ->setBakongAccountId('kon_thaina@cadi')
     ->setMerchantName('Konthaina Co., Ltd.')
     ->setCurrency('USD')
-    // Do NOT setAmount() for static QR
     ->setMerchantCity('Phnom Penh')
     ->generate();
-
-echo $result['qr'] . PHP_EOL;
-echo "md5: {$result['md5']}\n";       // stable
-echo "verify: " . (KHQRGenerator::verify($result['qr']) ? "OK" : "FAIL") . PHP_EOL;
 ```
-
-### Dynamic QR (with amount)
-Dynamic QR is the default mode (no need to call `setStatic(false)`).
-
-```php
-$result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
-    ->setBakongAccountId('kon_thaina@cadi')
-    ->setMerchantName('Konthaina Co., Ltd.')
-    ->setCurrency('USD')
-    ->setAmount(25.75)
-    ->generate();
-```
-
-> Note: If you remove amount but keep Dynamic mode (`POI=12`), some scanner apps may treat it as invalid.  
-> For “no amount” QR, use **Static** (`setStatic(true)`).
 
 ---
 
@@ -135,13 +120,11 @@ $khqr = new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL);
 
 $result = $khqr->setBakongAccountId('john_smith@devb')
     ->setMerchantName('John Smith')
-    ->setAccountInformation('85512233455')     // optional
-    ->setAcquiringBank('Dev Bank')             // optional (individual)
+    ->setAccountInformation('85512233455')
+    ->setAcquiringBank('Dev Bank')
     ->setCurrency('USD')
     ->setAmount(5.00)
     ->generate();
-
-echo $result['qr'];
 ```
 
 ### Merchant (Tag 30)
@@ -155,8 +138,6 @@ $result = $khqr->setBakongAccountId('merchant@bank')
     ->setCurrency('KHR')
     ->setAmount(50000)
     ->generate();
-
-echo $result['qr'];
 ```
 
 ---
@@ -173,7 +154,7 @@ $isValid = KHQRGenerator::verify($qrString);
 
 ## Verify Transaction by MD5 (Bakong Open API)
 
-> Requires a Bakong Open API access token.
+Requires a Bakong Open API access token.
 
 ```php
 use Konthaina\Khqr\BakongApiClient;
@@ -181,24 +162,18 @@ use Konthaina\Khqr\KHQRGenerator;
 
 $client = new BakongApiClient('YOUR_ACCESS_TOKEN'); // uses default Bakong base URL
 
-// Using the md5 returned by the generator
 $response = $client->checkTransactionByMd5($result['md5']);
-
-// Or compute md5 directly from the QR payload
 $response = $client->checkTransactionByQr($result['qr']);
 
-// Static helpers (same result)
 $response = KHQRGenerator::checkTransactionByMd5WithToken($result['md5'], 'YOUR_ACCESS_TOKEN');
 
 // Optional: custom base URL
 $client = new BakongApiClient('https://api-bakong.nbc.gov.kh', 'YOUR_ACCESS_TOKEN');
 ```
 
-The API returns a response structure with `responseCode`, `responseMessage`, and `data` (transaction details).
-
 ---
 
-## Bakong API Output
+## Verify MD5 Output
 
 Success
 ```json
@@ -218,7 +193,8 @@ Success
     }
 }
 ```
-NotFound
+
+Not found
 ```json
 {
    "data": null,
@@ -226,19 +202,6 @@ NotFound
    "responseCode": 1,
    "responseMessage": "Transaction could not be found. Please check and try again."
 }
-```
-
----
-
-## Returned structure
-
-```php
-[
-  'qr' => '000201...',
-  'timestamp' => '1700000000000', // null for static mode
-  'type' => 'individual|merchant',
-  'md5' => '...'
-]
 ```
 
 ---
@@ -263,7 +226,7 @@ The generator truncates fields based on common KHQR limits used in the code:
 - City alternate: 15
 - UPI account info: 31
 
-> Note: EMV length uses **byte length**. If you use Khmer/Unicode characters, byte length may differ from character count.
+Note: EMV length uses byte length. If you use Khmer or Unicode characters, byte length may differ from character count.
 
 ---
 
@@ -292,13 +255,13 @@ Create a new version tag when you update the library:
 
 ```bash
 git add .
-git commit -m "Release: v1.0.1"
-git tag v1.0.0
+git commit -m "Release: vX.Y.Z"
+git tag vX.Y.Z
 git push origin main
-git push origin v1.0.1
+git push origin vX.Y.Z
 ```
 
-Packagist will pick up tags like `v1.0.1` as stable versions (if webhook enabled).
+Packagist will pick up tags like `vX.Y.Z` as stable versions (if webhook enabled).
 
 ---
 
