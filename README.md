@@ -1,4 +1,3 @@
-[English](README.md) | [ខ្មែរ](README_KM.md)
 # konthaina/khqr-php
 
 KHQR / EMVCo merchant-presented QR payload generator for PHP (Bakong / Cambodia).
@@ -168,6 +167,65 @@ echo $result['qr'];
 use Konthaina\Khqr\KHQRGenerator;
 
 $isValid = KHQRGenerator::verify($qrString);
+```
+
+---
+
+## Verify Transaction by MD5 (Bakong Open API)
+
+> Requires a Bakong Open API access token.
+
+```php
+use Konthaina\Khqr\BakongApiClient;
+use Konthaina\Khqr\KHQRGenerator;
+
+$client = new BakongApiClient('YOUR_ACCESS_TOKEN'); // uses default Bakong base URL
+
+// Using the md5 returned by the generator
+$response = $client->checkTransactionByMd5($result['md5']);
+
+// Or compute md5 directly from the QR payload
+$response = $client->checkTransactionByQr($result['qr']);
+
+// Static helpers (same result)
+$response = KHQRGenerator::checkTransactionByMd5WithToken($result['md5'], 'YOUR_ACCESS_TOKEN');
+
+// Optional: custom base URL
+$client = new BakongApiClient('https://api-bakong.nbc.gov.kh', 'YOUR_ACCESS_TOKEN');
+```
+
+The API returns a response structure with `responseCode`, `responseMessage`, and `data` (transaction details).
+
+---
+
+## Bakong API Output
+
+Success
+```json
+{
+    "responseCode": 0,
+    "responseMessage": "Getting transaction successfully.",
+    "errorCode": null,
+    "data": {
+        "hash": "e40a....",
+        "fromAccountId": "developer@cmcb",
+        "toAccountId": "developer@devb",
+        "currency": "USD",
+        "amount": 1.0,
+        "description": "",
+        "createdDateMs": 1605774370608.0,
+        "acknowledgedDateMs": 1605774422421.0
+    }
+}
+```
+NotFound
+```json
+{
+   "data": null,
+   "errorCode": 1,
+   "responseCode": 1,
+   "responseMessage": "Transaction could not be found. Please check and try again."
+}
 ```
 
 ---

@@ -577,4 +577,62 @@ class KHQRGenerator
 
         return strtoupper($extractedCrc) === strtoupper($calculatedCrc);
     }
+
+    /**
+     * Check transaction status by md5 using Bakong Open API.
+     *
+     * @return array<string, mixed>
+     */
+    public static function checkTransactionByMd5(
+        string $md5,
+        string $baseUrl,
+        string $accessToken,
+        int $timeout = 30
+    ): array {
+        $client = new BakongApiClient($baseUrl, $accessToken, $timeout);
+        return $client->checkTransactionByMd5($md5);
+    }
+
+    /**
+     * Convenience helper: compute md5 from QR payload and check status.
+     *
+     * @return array<string, mixed>
+     */
+    public static function checkTransactionByQr(
+        string $qr,
+        string $baseUrl,
+        string $accessToken,
+        int $timeout = 30
+    ): array {
+        $client = new BakongApiClient($baseUrl, $accessToken, $timeout);
+        return $client->checkTransactionByQr($qr);
+    }
+
+    /**
+     * Check transaction status by md5 using the default Bakong base URL.
+     *
+     * @return array<string, mixed>
+     */
+    public static function checkTransactionByMd5WithToken(
+        string $md5,
+        string $accessToken,
+        int $timeout = 30
+    ): array {
+        $client = BakongApiClient::fromAccessToken($accessToken, $timeout);
+        return $client->checkTransactionByMd5($md5);
+    }
+
+    /**
+     * Convenience helper: compute md5 from QR payload and check status using the default Bakong base URL.
+     *
+     * @return array<string, mixed>
+     */
+    public static function checkTransactionByQrWithToken(
+        string $qr,
+        string $accessToken,
+        int $timeout = 30
+    ): array {
+        $client = BakongApiClient::fromAccessToken($accessToken, $timeout);
+        return $client->checkTransactionByQr($qr);
+    }
 }

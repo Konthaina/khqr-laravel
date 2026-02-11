@@ -3,30 +3,39 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use Konthaina\Khqr\KHQRGenerator;
+use Konthaina\Khqr\BakongApiClient;
 
 // ===== Individual =====
 $khqr = new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL);
+$client = new BakongApiClient('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiODliNzg5NGM4MjFkNDZiMyJ9LCJpYXQiOjE3Njg3OTQyMDcsImV4cCI6MTc3NjU3MDIwN30.SR7Ms9eSF9KDI3S4sBzhFGBzrKFplAY_ugL1bZguoz8');
 
-$result = $khqr->setBakongAccountId('kon_thaina@cadi')
-    // ->setStatic(true)
-    ->setMerchantName('Konthaina Co., Ltd.')
-    ->setAccountInformation('85512233455')
-    ->setAcquiringBank('Canadia Bank')
-    ->setCurrency('USD')
-    ->setAmount(0.01)
-    ->setMerchantCity('Phnom Penh')
-    ->setBillNumber('#12345')
-    ->setMobileNumber('85512233455')
-    ->setStoreLabel('Coffee Shop')
-    ->setTerminalLabel('Cashier_1')
-    ->setPurposeOfTransaction('Coffee')
-    ->generate();
+// $result = $khqr->setBakongAccountId('kon_thaina@cadi')
+//     // ->setStatic(true)
+//     ->setMerchantName('Konthaina Co., Ltd.')
+//     ->setAccountInformation('85512233455')
+//     ->setAcquiringBank('Canadia Bank')
+//     ->setCurrency('USD')
+//     ->setAmount(0.01)
+//     ->setMerchantCity('Phnom Penh')
+//     ->setBillNumber('#12345')
+//     ->setMobileNumber('85512233455')
+//     ->setStoreLabel('Coffee Shop')
+//     ->setTerminalLabel('Cashier_1')
+//     ->setPurposeOfTransaction('Coffee')
+//     ->generate();
 
-echo "=== INDIVIDUAL ===\n";
-echo $result['qr'] . "\n";
-echo "md5: {$result['md5']}\n";
-echo "timestamp: {$result['timestamp']}\n";
-echo "verify: " . (KHQRGenerator::verify($result['qr']) ? 'OK' : 'FAIL') . "\n\n";
+// echo "=== INDIVIDUAL ===\n";
+// echo $result['qr'] . "\n";
+// echo "md5: {$result['md5']}\n";
+// echo "timestamp: {$result['timestamp']}\n";
+// echo "verify: " . (KHQRGenerator::verify($result['qr']) ? 'OK' : 'FAIL') . "\n\n";
+
+// $response = $client->checkTransactionByMd5('07e83c44de651100407212b500f108cb');
+$response = $client->checkTransactionByQr('00020101021229500015kon_thaina@cadi0111855122334550212Canadia Bank52045999530384054040.015802KH5919Konthaina Co., Ltd.6010Phnom Penh62630106#123450211855122334550311Coffee Shop0709Cashier_10806Coffee9917001317708019732156304FC87');
+echo "=== CHECK TRANSACTION BY MD5 ===\n";
+echo json_encode($response, JSON_PRETTY_PRINT) . "\n";
+
+
 
 
 // ===== Merchant =====
