@@ -635,4 +635,17 @@ class KHQRGenerator
         $client = BakongApiClient::fromAccessToken($accessToken, $timeout);
         return $client->checkTransactionByQr($qr);
     }
+
+    /**
+     * Renew Bakong Open API token.
+     *
+     * @return array<string, mixed>
+     */
+    public static function renewBakongToken(
+        string $email,
+        string $baseUrl = BakongApiClient::DEFAULT_BASE_URL,
+        int $timeout = 30
+    ): array {
+        return BakongApiClient::renewToken($email, $baseUrl, $timeout);
+    }
 }

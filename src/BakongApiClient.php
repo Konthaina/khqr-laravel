@@ -35,6 +35,28 @@ final class BakongApiClient
     }
 
     /**
+     * Renew Bakong Open API token.
+     *
+     * @return array<string, mixed>
+     */
+    public static function renewToken(
+        string $email,
+        string $baseUrl = self::DEFAULT_BASE_URL,
+        int $timeout = 30
+    ): array {
+        $email = trim($email);
+        if ($email === '') {
+            throw new \InvalidArgumentException('email is required');
+        }
+
+        return self::sendPostJson(
+            rtrim($baseUrl, '/') . '/v1/renew_token',
+            ['email' => $email],
+            $timeout
+        );
+    }
+
+    /**
      * Check transaction status by md5 hash.
      *
      * @return array<string, mixed>
@@ -66,17 +88,35 @@ final class BakongApiClient
     private function postJson(string $path, array $payload): array
     {
         $url = $this->baseUrl . '/' . ltrim($path, '/');
-        $body = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        return self::sendPostJson($url, $payload, $this->timeout, $this->accessToken);
+    }
 
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private static function sendPostJson(
+        string $url,
+        array $payload,
+        int $timeout,
+        ?string $accessToken = null
+    ): array {
+        $body = json_encode($payload, JSON_UNESCAPED_SLASHES);
         if ($body === false) {
             throw new \RuntimeException('Failed to encode JSON payload.');
         }
 
         $headers = [
-            'Authorization: Bearer ' . $this->accessToken,
             'Content-Type: application/json',
             'Accept: application/json',
         ];
+
+        if ($accessToken !== null) {
+            $accessToken = trim($accessToken);
+            if ($accessToken !== '') {
+                $headers[] = 'Authorization: Bearer ' . $accessToken;
+            }
+        }
 
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
@@ -89,7 +129,7 @@ final class BakongApiClient
                 CURLOPT_POST => true,
                 CURLOPT_POSTFIELDS => $body,
                 CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_TIMEOUT => $this->timeout,
+                CURLOPT_TIMEOUT => $timeout,
             ]);
 
             $response = curl_exec($ch);
@@ -102,7 +142,7 @@ final class BakongApiClient
             $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
-            return $this->decodeResponse($response, $status);
+            return self::decodeResponse($response, $status);
         }
 
         $context = stream_context_create([
@@ -110,24 +150,24 @@ final class BakongApiClient
                 'method' => 'POST',
                 'header' => implode("\r\n", $headers),
                 'content' => $body,
-                'timeout' => $this->timeout,
+                'timeout' => $timeout,
             ],
         ]);
 
         $response = @file_get_contents($url, false, $context);
-        $status = $this->extractHttpStatus($http_response_header ?? []);
+        $status = self::extractHttpStatus($http_response_header ?? []);
 
         if ($response === false) {
             throw new \RuntimeException('Bakong API request failed.');
         }
 
-        return $this->decodeResponse($response, $status);
+        return self::decodeResponse($response, $status);
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function decodeResponse(string $response, int $status): array
+    private static function decodeResponse(string $response, int $status): array
     {
         if ($status >= 400 || $status === 0) {
             throw new \RuntimeException('Bakong API returned HTTP ' . $status . ': ' . $response);
@@ -144,7 +184,7 @@ final class BakongApiClient
     /**
      * @param array<int, string> $headers
      */
-    private function extractHttpStatus(array $headers): int
+    private static function extractHttpStatus(array $headers): int
     {
         foreach ($headers as $header) {
             if (preg_match('/^HTTP\\/\\S+\\s+(\\d+)/i', $header, $matches) === 1) {

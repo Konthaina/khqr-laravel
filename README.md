@@ -173,6 +173,25 @@ $client = new BakongApiClient('https://api-bakong.nbc.gov.kh', 'YOUR_ACCESS_TOKE
 
 ---
 
+## Renew Access Token (Bakong Open API)
+
+Based on Bakong Open API `POST /v1/renew_token`:
+
+```php
+use Konthaina\Khqr\BakongApiClient;
+use Konthaina\Khqr\KHQRGenerator;
+
+$response = BakongApiClient::renewToken('your-email@example.com');
+
+// Optional: custom base URL and timeout
+$response = BakongApiClient::renewToken('your-email@example.com', 'https://api-bakong.nbc.gov.kh', 30);
+
+// Convenience wrapper
+$response = KHQRGenerator::renewBakongToken('your-email@example.com');
+```
+
+---
+
 ## Verify MD5 Output
 
 Success
