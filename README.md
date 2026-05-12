@@ -71,13 +71,15 @@ $result = $khqr->setBakongAccountId('kon_thaina@cadi')
     ->setMerchantName('Konthaina Co., Ltd.')
     ->setCurrency('USD')
     ->setAmount(25.75)
+    ->setExpirationDuration(120)
     ->setMerchantCity('Phnom Penh')
     ->setBillNumber('#12345')
     ->generate();
 
 echo $result['qr'] . PHP_EOL;
 echo "md5: {$result['md5']}\n";
-echo "timestamp: {$result['timestamp']}\n";
+echo "createdTimestamp: {$result['createdTimestamp']}\n";
+echo "expirationTimestamp: {$result['expirationTimestamp']}\n";
 echo "verify: " . (KHQRGenerator::verify($result['qr']) ? "OK" : "FAIL") . PHP_EOL;
 ```
 
@@ -85,7 +87,9 @@ Returned structure:
 ```php
 [
   'qr' => '000201...',
-  'timestamp' => '1700000000000', // null for static mode
+  'timestamp' => '1700000000000',
+  'createdTimestamp' => '1700000000000',
+  'expirationTimestamp' => '1700000120000', // null for static mode
   'type' => 'individual|merchant',
   'md5' => '...'
 ]
@@ -95,8 +99,9 @@ Returned structure:
 
 ## Static QR vs Dynamic QR
 
-- Static QR is stable and uses POI=11. It does not include a timestamp.
-- Dynamic QR is the default mode (POI=12) and may include a timestamp.
+- Static QR uses POI=11 and includes Tag 99 sub-tag 00 as the create timestamp.
+- Dynamic QR is the default mode (POI=12) and includes Tag 99 sub-tag 00 as the create timestamp plus sub-tag 01 as the expiration timestamp.
+- Dynamic QR defaults to expiring 300 seconds after creation. Use `setExpirationTimestamp(...)` or `setExpirationDuration(...)` to control it.
 - For a "no amount" QR, use static mode.
 
 Static example:
@@ -109,6 +114,20 @@ $result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
     ->setMerchantCity('Phnom Penh')
     ->generate();
 ```
+
+Timestamp example:
+```php
+$result = (new KHQRGenerator(KHQRGenerator::MERCHANT_TYPE_INDIVIDUAL))
+    ->setBakongAccountId('kon_thaina@cadi')
+    ->setMerchantName('Konthaina Co., Ltd.')
+    ->setCurrency('USD')
+    ->setAmount(25.75)
+    ->setCreatedTimestamp('1755076232336')
+    ->setExpirationTimestamp('1755076292336')
+    ->generate();
+```
+
+Both timestamp values are 13-digit Unix timestamps in milliseconds.
 
 ---
 
@@ -244,6 +263,8 @@ The generator truncates fields based on common KHQR limits used in the code:
 - Merchant name alternate: 25
 - City alternate: 15
 - UPI account info: 31
+- Created timestamp: 13 digits, Unix milliseconds
+- Expiration timestamp: 13 digits, Unix milliseconds
 
 Note: EMV length uses byte length. If you use Khmer or Unicode characters, byte length may differ from character count.
 

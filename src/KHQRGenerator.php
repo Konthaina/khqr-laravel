@@ -13,6 +13,8 @@ class KHQRGenerator
     public const CURRENCY_KHR = '116';
     public const CURRENCY_USD = '840';
 
+    public const DEFAULT_DYNAMIC_EXPIRATION_SECONDS = 300;
+
     public const MERCHANT_TYPE_INDIVIDUAL = 'individual';
     public const MERCHANT_TYPE_MERCHANT = 'merchant';
 
@@ -23,6 +25,30 @@ class KHQRGenerator
     public function setStatic(bool $static = true): self
     {
         $this->static = $static;
+        return $this;
+    }
+
+    public function setCreatedTimestamp(int|string|\DateTimeInterface $timestamp): self
+    {
+        $this->data['createdTimestamp'] = $this->normalizeTimestamp($timestamp);
+        return $this;
+    }
+
+    public function setExpirationTimestamp(int|string|\DateTimeInterface $timestamp): self
+    {
+        $this->data['expirationTimestamp'] = $this->normalizeTimestamp($timestamp);
+        return $this;
+    }
+
+    public function setExpirationDuration(int $seconds): self
+    {
+        if ($seconds <= 0) {
+            throw new \InvalidArgumentException('Expiration duration must be greater than zero seconds');
+        }
+
+        $this->data['expirationDurationSeconds'] = $seconds;
+        unset($this->data['expirationTimestamp']);
+
         return $this;
     }
 
@@ -240,12 +266,23 @@ class KHQRGenerator
             $qr .= $this->formatTag('64', $tag64);
         }
 
-        $timestamp = null;
+        // Timestamp (Tag 99)
+        $timestamp = $this->data['createdTimestamp'] ?? $this->currentTimestamp();
+        $expirationTimestamp = null;
+        $tag99 = $this->formatTag('00', $timestamp);
+
         if (!$this->static) {
-            // Timestamp (Tag 99)
-            $timestamp = (string) ((int) round(microtime(true) * 1000));
-            $qr .= $this->formatTag('99', $this->formatTag('00', $timestamp));
+            $expirationTimestamp = $this->data['expirationTimestamp']
+                ?? (string) ((int) $timestamp + (($this->data['expirationDurationSeconds'] ?? self::DEFAULT_DYNAMIC_EXPIRATION_SECONDS) * 1000));
+
+            if ((int) $expirationTimestamp <= (int) $timestamp) {
+                throw new \InvalidArgumentException('Expiration timestamp must be greater than creation timestamp for dynamic KHQR');
+            }
+
+            $tag99 .= $this->formatTag('01', $expirationTimestamp);
         }
+
+        $qr .= $this->formatTag('99', $tag99);
 
         // CRC (Tag 63)
         $crc = $this->calculateCRC($qr . '6304');
@@ -254,6 +291,8 @@ class KHQRGenerator
         return [
             'qr' => $qr,
             'timestamp' => $timestamp,
+            'createdTimestamp' => $timestamp,
+            'expirationTimestamp' => $expirationTimestamp,
             'type' => $this->merchantType,
             'md5' => md5($qr),
         ];
@@ -276,6 +315,26 @@ class KHQRGenerator
 
         $length = str_pad((string) $len, 2, '0', STR_PAD_LEFT);
         return $tag . $length . $value;
+    }
+
+    private function currentTimestamp(): string
+    {
+        return (string) ((int) round(microtime(true) * 1000));
+    }
+
+    private function normalizeTimestamp(int|string|\DateTimeInterface $timestamp): string
+    {
+        if ($timestamp instanceof \DateTimeInterface) {
+            $timestamp = ((int) $timestamp->format('U') * 1000) + intdiv((int) $timestamp->format('u'), 1000);
+        }
+
+        $timestamp = (string) $timestamp;
+
+        if (!preg_match('/^\d{13}$/', $timestamp)) {
+            throw new \InvalidArgumentException('Timestamp must be a 13-digit Unix timestamp in milliseconds');
+        }
+
+        return $timestamp;
     }
 
     /**
